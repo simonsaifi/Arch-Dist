@@ -6,6 +6,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -26,7 +27,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
 
     EditText etText;
-    ImageView ivMic,ivCopy;
+    ImageView ivMic,ivCopy, btnPlay, btnPause, btnNext, btnBack;
     Spinner spLangs;
     String lcode = "en-US";
 
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     String[] lCodes = {"en-US","fr-FR"};
 
     MediaPlayer mediaPlayer;
+    MediaPlayer mediaPlayer2;
 
 
     @Override
@@ -44,12 +46,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mediaPlayer = MediaPlayer.create(this, R.raw.hotel_california);
+        mediaPlayer2 = MediaPlayer.create(this, R.raw.pablo);
 
         // initialize views
         etText = findViewById(R.id.etSpeech);
         ivMic = findViewById(R.id.ivSpeak);
         ivCopy = findViewById(R.id.ivCopy);
         spLangs = findViewById(R.id.spLang);
+        btnPlay = findViewById(R.id.btnPlay);
+        btnPause = findViewById(R.id.btnPause);
+        btnNext = findViewById(R.id.btnNext);
+        btnBack = findViewById(R.id.btnBack);
+
+
 
         // set onSelectedItemListener for the spinner
         spLangs.setOnItemSelectedListener(this);
@@ -63,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         ivMic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                etText.setText("");
                 // creating intent using RecognizerIntent to convert speech to text
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -70,6 +80,23 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 intent.putExtra(RecognizerIntent.EXTRA_PROMPT,"Speak now!");
                 // starting intent for result
                 activityResultLauncher.launch(intent);
+            }
+        });
+
+        btnPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                btnPlay.setVisibility(View.INVISIBLE);
+                btnPause.setVisibility(View.VISIBLE);
+                mediaPlayer.start();
+            }
+        });
+        btnPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                btnPlay.setVisibility(View.VISIBLE);
+                btnPause.setVisibility(View.INVISIBLE);
+                mediaPlayer.pause();
             }
         });
     }
@@ -86,20 +113,39 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         ArrayList<String> d=result.getData().getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                         etText.setText(etText.getText()+" "+d.get(0));
                     }
-                    if(etText.getText().toString().matches(".*\\bplay\\b.*")) {
+                    if(etText.getText().toString().matches(".*\\bplay Hotel California\\b.*")) {
                         // Le texte contient "play"
                         // Ajouter le code pour gérer le cas où "play" est trouvé
+                        if (mediaPlayer2.isPlaying()){
+                            mediaPlayer2.pause();
+                        }
                         Toast.makeText(MainActivity.this, "Playing music", Toast.LENGTH_SHORT).show();
-
                         mediaPlayer.start();
+                        btnPlay.setVisibility(View.INVISIBLE);
+                        btnPause.setVisibility(View.VISIBLE);
                     }
-                    if(etText.getText().toString().matches(".*\\bpause\\b.*")) {
+                    if(etText.getText().toString().matches(".*\\bplay Pablo\\b.*")) {
+                        // Le texte contient "play"
+                        // Ajouter le code pour gérer le cas où "play" est trouvé
+                        if (mediaPlayer.isPlaying()){
+                            mediaPlayer.pause();
+                        }
+                        Toast.makeText(MainActivity.this, "Playing music", Toast.LENGTH_SHORT).show();
+                        mediaPlayer2.start();
+                        btnPlay.setVisibility(View.INVISIBLE);
+                        btnPause.setVisibility(View.VISIBLE);
+                    }
+
+                    if(etText.getText().toString().matches(".*\\bstop\\b.*")) {
                         // Le texte contient "pause"
                         // Ajouter le code pour gérer le cas où "pause" est trouvé
                         Toast.makeText(MainActivity.this, "Pausing music", Toast.LENGTH_SHORT).show();
-                        if (mediaPlayer.isPlaying()) {
+                        if (mediaPlayer.isPlaying() || mediaPlayer2.isPlaying()) {
                             mediaPlayer.pause();
+                            mediaPlayer2.pause();
                         }
+                        btnPlay.setVisibility(View.VISIBLE);
+                        btnPause.setVisibility(View.INVISIBLE);
                     }
                 }
             });
